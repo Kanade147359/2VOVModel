@@ -4,12 +4,9 @@ from PIL import Image
 import os
 import math
 
-
-# CSVファイルのパス
 csv_filepath = 'output/positions.csv'  # 必要に応じて変更
 output_gif = 'simulation.gif'
 
-# パラメータ
 N = 10
 num = 100  
 frames = []
@@ -27,7 +24,7 @@ if not os.path.exists('frames'):
 for step in range(0, len(df), num):
     subset = df.iloc[step:step + num]
 
-        # サブセットの範囲を確認（デバッグ用）
+    # サブセットの範囲を確認（デバッグ用）
     print(f"Step {step // num}:")
     print(subset)
 
@@ -43,10 +40,8 @@ for step in range(0, len(df), num):
 
     frames.append(Image.open(frame_filename))
 
-# GIFアニメーションを作成して保存
 frames[0].save(output_gif, format='GIF', append_images=frames[1:], save_all=True, duration=100, loop=0)
 
-# 一時的なフレーム画像を削除
 for frame in frames:
     os.remove(frame.filename)
 
