@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "2dovmodel-cpp"
+version = "0.1.0"
+description = ""
+authors = ["kanade147359 <kanade147359@keio.jp>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pandas = "^2.2.2"
+matplotlib = "^3.9.1"
+pillow = "^10.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
