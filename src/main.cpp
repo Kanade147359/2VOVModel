@@ -5,12 +5,13 @@
 int main(){
     int N = 10;
     int num = std::pow(N, 2);
-    double r = 0.5;
+    double r = 1.3;
     double a = 0.5;
     double c = 0.5;
     double dt = 0.01;
-    double distance_threshold = 0.5;
-    int steps = 10000;
+    double distance_threshold = 1;
+    double eta = 0.2;
+    int steps = 1000;
 
     double width = (std::sqrt(3)/2) * r * N;
     double height = N * r;
@@ -26,6 +27,7 @@ int main(){
     run_simulation(positions, velocities, acceleration, 
                    distance_threshold, steps, num, 
                    r, dt, a, c, 
+                   eta,
                    width, height, 
                    filepath);
     return 0;

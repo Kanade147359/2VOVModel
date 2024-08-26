@@ -11,22 +11,18 @@ N = 10
 num = 100  
 frames = []
 
-r = 0.5
+r = 1.3
 width = (math.sqrt(3) / 2) * r * N 
 height = r * N
 
 df = pd.read_csv(csv_filepath, header=None, names=['x', 'y'])
-print(df.head())
+
 if not os.path.exists('frames'):
     os.makedirs('frames')
 
 
 for step in range(0, len(df), num):
     subset = df.iloc[step:step + num]
-
-    # サブセットの範囲を確認（デバッグ用）
-    print(f"Step {step // num}:")
-    print(subset)
 
     plt.figure(figsize=(6, 6))
     plt.xlim(0, width) 

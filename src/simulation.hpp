@@ -14,7 +14,8 @@ void update(Values& positions,
             double dt, 
             const NeighborIds& neighbors, 
             double a, 
-            double c);
+            double c,
+            double eta);
 
 NeighborIds find_neighbors(int num,
                     const Values& positions, 
@@ -30,6 +31,7 @@ void run_simulation(Values& positions,
                     double dt, 
                     double a, 
                     double c,
+                    double eta,
                     double width,
                     double height,
                     std::string filepath);
