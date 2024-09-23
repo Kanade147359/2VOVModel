@@ -33,19 +33,21 @@ void update(Values& positions,
         std::array<double, 2> force_sum = {0.0, 0.0};
 
         for (int m : neighbors[n]) {
-            double rmn = std::sqrt(std::pow(positions[n][0] - positions[m][0], 2) + 
-                                   std::pow(positions[n][1] - positions[m][1], 2));
+            double rmn = std::abs(std::sqrt(std::pow(positions[n][0] - positions[m][0], 2) + 
+                                   std::pow(positions[n][1] - positions[m][1], 2)));
             if (rmn == 0) continue;
+            std::array<double, 2> emn = {(positions[n][0] - positions[m][0]) / rmn, 
+                          (positions[n][1] - positions[m][1]) / rmn};
 
             double dot_product = velocities[n][0] * velocities[m][0] + velocities[n][1] * velocities[m][1];
-            double norms_product = std::sqrt(velocities[n][0] * velocities[n][0] + velocities[n][1] * velocities[n][1]) * 
-                                   std::sqrt(velocities[m][0] * velocities[m][0] + velocities[m][1] * velocities[m][1]);
+            double norms_product = std::abs(std::sqrt(velocities[n][0] * velocities[n][0] + velocities[n][1] * velocities[n][1])) * 
+                                   std::abs(std::sqrt(velocities[m][0] * velocities[m][0] + velocities[m][1] * velocities[m][1]));
             if (norms_product == 0) continue;
 
             double cos_theta = dot_product / norms_product;
 
-            force_sum[0] += P(cos_theta) * V(rmn, c) ;
-            force_sum[1] += P(cos_theta) * V(rmn, c) ;
+            force_sum[0] += P(cos_theta) * V(rmn, c) * emn[0];
+            force_sum[1] += P(cos_theta) * V(rmn, c) * emn[1];
 
             force_sum[0] -= velocities[n][0];
             force_sum[1] -= velocities[n][1];
@@ -71,12 +73,12 @@ void update(Values& positions,
         }
 
         if (positions[n][1] >= height) {
-            positions[n][1] = height - (positions[n][1]-height);
-            velocities[n][1] *= -1;         
+            positions[n][1] = height;
+            velocities[n][1] = - std::abs(velocities[n][1]);         
         }
         else if (positions[n][1] < 0) {
-            positions[n][1] = -positions[n][1];
-            velocities[n][1] = -velocities[n][1];         
+            positions[n][1] = 0;
+            velocities[n][1] = - std::abs(velocities[n][1]);         
         }
 
         if (positions[n][0] > width) {

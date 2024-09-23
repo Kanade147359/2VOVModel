@@ -24,10 +24,6 @@ if not os.path.exists('frames'):
 for step in range(0, len(df), num):
     subset = df.iloc[step:step + num]
 
-    # サブセットの範囲を確認（デバッグ用）
-    print(f"Step {step // num}:")
-    print(subset)
-
     plt.figure(figsize=(6, 6))
     plt.xlim(0, width) 
     plt.ylim(0, height)  

@@ -7,7 +7,7 @@ TMP_DIR = tmp
 
 OBJECTS = $(TMP_DIR)/main.o $(TMP_DIR)/initial_values.o $(TMP_DIR)/simulation.o
 
-TARGET = simulation.o
+TARGET = simulation.out
 
 all: $(TARGET)
 
@@ -26,11 +26,18 @@ $(TMP_DIR)/simulation.o: src/simulation.cpp src/simulation.hpp | $(TMP_DIR)
 $(TMP_DIR):
 	mkdir -p $(TMP_DIR)
 
-gif:
+output/positions.csv: $(TARGET)
+	./$(TARGET)
+
+gif: output/positions.csv
 	poetry install
 	poetry run python3 create_gif.py
 
 # クリーンアップルール
+.PHONY: clean clear
 clean:
 	rm -f $(TMP_DIR)/*.o $(TARGET)
+
+clear: clean
+	rm -f output/positions.csv output/positions.gif
 
