@@ -8,49 +8,22 @@
 #include <algorithm>
 
 // 角度依存性関数
-double P(double cos_theta) {
-    return 0.5 * (1 + cos_theta);
+std::array<double, 2> F(double V, double cos_phi, std::array<double, 2> emn) {
+    return {(V * (1 + cos_phi)) * emn[0], (V * (1 + cos_phi)) * emn[1]};
 }
 
 // 力関数
-double V(double r, double c) {
-    return std::tanh(r - c) + std::tanh(c);
+double V(double r, double b, double c) {
+    return 0.25 * (std::tanh(2.5*(r - b)) + std::tanh(c));
 }
 
-// 構造体またはペアを使用して、距離と粒子のインデックスを保持
-struct Neighbor {
-    double distance;
-    int index;
-};
-
-// 位置と速度の更新関数
-void update(Values& positions, 
-            Values& velocities, 
-            Values& accelerations, 
-            double dt, 
-            double a, 
-            double c,
-            int num,
-            double width,
-            double height) {
-
-    Values new_accelerations(num, {0.0, 0.0});
-
-
-for (int n = 0; n < num; ++n)
-    {
-    std::array<double, 2> force_sum = {0.0, 0.0};
-
-    // 隣接粒子の集合を作成
+std::vector<Neighbor> find_neighbors(Values& positions, int n, int num, double width, double height){
     std::vector<Neighbor> neighbors;
-
-    // 全粒子に対して距離を計算し、最近接粒子リストを作成
     for (int m = 0; m < num; ++m)
     {
-        if (n == m) continue;  // 自分自身はスキップ
-
-        double dx = positions[n][0] - positions[m][0];
-        double dy = positions[n][1] - positions[m][1];
+        if (m == n) continue; // 自分自身は無視
+        double dx = positions[m][0] - positions[n][0];
+        double dy = positions[m][1] - positions[n][1];
 
         if (dx < -width/2) dx += width;
         if (dx > width/2) dx -= width;
@@ -59,84 +32,84 @@ for (int n = 0; n < num; ++n)
 
         double rmn = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
         // 距離とインデックスをペアとしてリストに追加
-        neighbors.push_back({rmn, m});
+        neighbors.push_back({dx, dy, rmn});
     }
-
     // 距離に基づいて昇順にソート
     std::sort(neighbors.begin(), neighbors.end(), [](const Neighbor &a, const Neighbor &b)
-                { return a.distance < b.distance; });
+            { return a.distance < b.distance; });
 
-    // 6番目までの最近接粒子との相互作用を計算
-    for (int i = 0; i < std::min(7, static_cast<int>(neighbors.size())); ++i)
+    neighbors.resize(6);  // ベクトルのサイズを6に絞る
+
+    return neighbors;
+}
+
+void calculate_acceleration(std::array<double, 2> velocity, std::vector<Neighbor> neighbors, double a, double b, double c, double &ax, double &ay)
+{
+    double F_sum_x = 0;
+    double F_sum_y = 0;
+    for (auto neighbor : neighbors)
     {
-        int m = neighbors[i].index; // 近接粒子のインデックス
-        double rmn = neighbors[i].distance;
-
-        if (rmn == 0) continue; // 距離がゼロの粒子は無視
-
-        // 単位ベクトルの計算
-        std::array<double, 2> emn = {(positions[n][0] - positions[m][0]) / rmn,
-                                        (positions[n][1] - positions[m][1]) / rmn};
-
-        // 内積とノルムの積の計算
-        double dot_product = velocities[n][0] * velocities[m][0] + velocities[n][1] * velocities[m][1];
-        double norms_product = std::sqrt(velocities[n][0] * velocities[n][0] + velocities[n][1] * velocities[n][1]) *
-                                std::sqrt(velocities[m][0] * velocities[m][0] + velocities[m][1] * velocities[m][1]);
-
-        if (norms_product == 0) continue;
-
-        double cos_theta = dot_product / norms_product;
-
-        // 力の計算
-        force_sum[0] += P(cos_theta) * V(rmn, c) * emn[0];
-        force_sum[1] += P(cos_theta) * V(rmn, c) * emn[1];
-
-        // 粒子nの速度を差し引く
-        force_sum[0] -= velocities[n][0];
-        force_sum[1] -= velocities[n][1];
+        std::array<double, 2> emn = { neighbor.dx/ neighbor.distance, neighbor.dy/ neighbor.distance};
+        double cos_phi = neighbor.dx / neighbor.distance;
+        F_sum_x += V(neighbor.distance, b, c) * (1+cos_phi) * emn[0];
+        F_sum_y += V(neighbor.distance, b, c) * (1+cos_phi) * emn[1];
     }
 
-    // 加速度の更新
-    new_accelerations[n][0] += a * force_sum[0];
-    new_accelerations[n][1] += a * force_sum[1];
+    ax = a * ((1.0 + F_sum_x) - velocity[0]);
+    ay = a * (F_sum_y - velocity[1]);
+}
 
+// 位置と速度の更新関数
+void update(Values& positions, 
+            Values& velocities, 
+            double dt, 
+            double a, 
+            double b,
+            double c,
+            int num,
+            double width,
+            double height
+            ) {
     // 速度の更新
-    velocities[n][0] += new_accelerations[n][0] * dt;
-    velocities[n][1] += new_accelerations[n][1] * dt;
-
+    for (int n = 0; n < num; ++n){
+        // 隣接粒子の集合を作成
+        std::vector<Neighbor> neighbors = find_neighbors(positions, n, num, width, height);
+        double ax, ay;
+        calculate_acceleration(velocities[n],neighbors, b, c, a, ax, ay);
+        velocities[n][0] += ax * dt;
+        velocities[n][1] += ay * dt;
+    }
     // 位置の更新
-    positions[n][0] += velocities[n][0] * dt;
-    positions[n][1] += velocities[n][1] * dt;
+    for (int i = 0; i < num; ++i){
 
-    accelerations[n][0] = new_accelerations[n][0];
-    accelerations[n][1] = new_accelerations[n][1];
+        // 位置の更新
+        positions[i][0] += velocities[i][0] * dt;
+        positions[i][1] += velocities[i][1] * dt;
 
-    // x軸方向の境界条件
-    if (positions[n][0] >= width) positions[n][0] -= width;
-    if (positions[n][0] < 0) positions[n][0] += width;
+        // x軸方向の境界条件
+        if (positions[i][0] >= width) positions[i][0] -= width;
+        if (positions[i][0] < 0) positions[i][0] += width;
 
-    // y軸方向の境界条件
-    if (positions[n][1] >= height) positions[n][1] -= height;
-    if (positions[n][1] < 0) positions[n][1] += height;
+        // y軸方向の境界条件
+        if (positions[i][1] >= height) positions[i][1] -= height;
+        if (positions[i][1] < 0) positions[i][1] += height;
 
-
-    // 境界を超えた場合のエラーチェック
-    if (positions[n][0] > width || positions[n][1] > height || positions[n][0] < 0 || positions[n][1] < 0)
-    {
-        std::cerr << "Error: Particle " << n << " exceeded boundaries." << std::endl;
-        throw std::out_of_range("Particle exceeded width or height boundary");
-    }
-    }
+        // 境界を超えた場合のエラーチェック
+        if (positions[i][0] > width || positions[i][1] > height || positions[i][0] < 0 || positions[i][1] < 0)
+        {
+            std::cerr << "Error: Particle " << i << " exceeded boundaries." << std::endl;
+            throw std::out_of_range("Particle exceeded width or height boundary");
+        }
+        }
 }
 
 void run_simulation(Values &positions,
                     Values &velocities,
-                    Values &accelerations,
                     int steps,
                     int num,
-                    double r,
                     double dt,
                     double a,
+                    double b,
                     double c,
                     double width,
                     double height,
@@ -150,7 +123,7 @@ void run_simulation(Values &positions,
     }
 
     for (int i = 0; i < steps; ++i){
-        update(positions, velocities, accelerations, dt, a, c, num, width, height);
+        update(positions, velocities, dt, a, b, c, num, width, height);
 
         if (i % 20 == 0) {
             if (ofs_csv_file.is_open()) {

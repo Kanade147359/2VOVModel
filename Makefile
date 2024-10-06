@@ -39,5 +39,5 @@ clean:
 	rm -f $(TMP_DIR)/*.o $(TARGET)
 
 clear: clean
-	rm -f output/positions.csv output/positions.gif
+	rm -f output/positions.csv simulation.gif
 
