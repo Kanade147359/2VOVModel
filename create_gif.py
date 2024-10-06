@@ -27,7 +27,7 @@ for step in range(0, len(df), num):
     plt.figure(figsize=(width, height))
     plt.xlim(0, width) 
     plt.ylim(0, height)  
-    plt.scatter(subset['x'], subset['y'])
+    plt.scatter(subset['x'], subset['y'],s=100)
     plt.title(f'Step {step // num}')
     
     frame_filename = f'frames/frame_{step // 100}.png'

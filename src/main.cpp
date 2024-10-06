@@ -6,11 +6,11 @@ int main(){
     int N = 10;
     int num = std::pow(N, 2);
     double r = 1.3;
-    double a = 0.5;
+    double a = 1.0;
     double b = 1.0;
     double c = -1.0;
     double dt = 0.01;
-    int steps = 50000;
+    int steps = 10000;
 
     double width = (std::sqrt(3)/2) * r * N;
     double height = N * r;
