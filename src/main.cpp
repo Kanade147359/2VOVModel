@@ -6,7 +6,7 @@ int main(){
     int N = 10;
     int num = std::pow(N, 2);
     double r = 1.3;
-    double a = 1.0;
+    double a = 0.5;
     double b = 1.0;
     double c = -1.0;
     double dt = 0.01;

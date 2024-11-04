@@ -9,7 +9,7 @@ OBJECTS = $(TMP_DIR)/main.o $(TMP_DIR)/initial_values.o $(TMP_DIR)/simulation.o
 
 TARGET = simulation.out
 
-all: $(TARGET)
+all : $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS)
@@ -25,6 +25,7 @@ $(TMP_DIR)/simulation.o: src/simulation.cpp src/simulation.hpp | $(TMP_DIR)
 
 $(TMP_DIR):
 	mkdir -p $(TMP_DIR)
+
 
 output/positions.csv: $(TARGET)
 	./$(TARGET)

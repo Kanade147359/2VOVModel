@@ -14,7 +14,7 @@ std::array<double, 2> F(double V, double cos_phi, std::array<double, 2> emn) {
 
 // 力関数
 double V(double r, double b, double c) {
-    return 0.25 * (std::tanh(2.5*(r - b)) + std::tanh(c));
+    return 0.25 * (std::tanh(2.5*(r - b)) + c);
 }
 
 std::vector<Neighbor> find_neighbors(Values& positions, int n, int num, double width, double height){
