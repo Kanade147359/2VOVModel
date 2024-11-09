@@ -133,4 +133,5 @@ void run_simulation(Values &positions,
             }
         }
     }
+    ofs_csv_file.close();
 }

@@ -12,7 +12,7 @@ TARGET = simulation.out
 all : $(TARGET)
 
 $(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS)
+	$(CXX) $(CXXFLAGS) -g -o $(TARGET) $(OBJECTS)
 
 $(TMP_DIR)/main.o: src/main.cpp src/initial_values.hpp src/simulation.hpp | $(TMP_DIR)
 	$(CXX) $(CXXFLAGS) -c src/main.cpp -o $(TMP_DIR)/main.o
@@ -31,8 +31,7 @@ output/positions.csv: $(TARGET)
 	./$(TARGET)
 
 gif: output/positions.csv
-	poetry install
-	poetry run python3 create_gif.py
+	python3 create_gif.py
 
 # クリーンアップルール
 .PHONY: clean clear
