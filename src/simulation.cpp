@@ -17,8 +17,10 @@ double V(double r, double b, double c) {
     return 0.25 * (std::tanh(2.5*(r - b)) + c);
 }
 
-std::vector<Neighbor> find_neighbors(Values& positions, int n, int num, double width, double height){
-    std::vector<Neighbor> neighbors;
+Values find_neighbors(Values& positions, int n, int num, double width, double height){
+    Values neighbors;
+    std::vector<double> distances; // 距離
+    
     for (int m = 0; m < num; ++m)
     {
         if (m == n) continue; // 自分自身は無視
@@ -30,29 +32,47 @@ std::vector<Neighbor> find_neighbors(Values& positions, int n, int num, double w
         if (dy < -height/2) dy += height;
         if (dy > height/2) dy -= height;
 
-        double rmn = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
-        // 距離とインデックスをペアとしてリストに追加
-        neighbors.push_back({dx, dy, rmn});
+        double rmn = std::sqrt(dx*dx + dy*dy);
+        neighbors.push_back({dx, dy});
+        distances.push_back(rmn);
     }
-    // 距離に基づいて昇順にソート
-    std::sort(neighbors.begin(), neighbors.end(), [](const Neighbor &a, const Neighbor &b)
-            { return a.distance < b.distance; });
 
-    neighbors.resize(6);  // ベクトルのサイズを6に絞る
-
-    return neighbors;
+    return sort_and_select_top_6(neighbors, distances);
 }
 
-void calculate_acceleration(std::array<double, 2> velocity, std::vector<Neighbor> neighbors, double a, double b, double c, double &ax, double &ay)
+Values sort_and_select_top_6(const Values& neighbors, const std::vector<double>& distances) {
+    
+    std::vector<size_t> indices(distances.size());
+    for (size_t i = 0; i < distances.size(); ++i) {
+        indices[i] = i;
+    }
+
+    std::sort(indices.begin(), indices.end(), [&distances](size_t a, size_t b) {
+        return distances[a] < distances[b];
+    });
+
+    Values sorted_relative_positions;
+
+    for (size_t i = 0; i < 6; ++i) {
+        sorted_relative_positions.push_back(neighbors[indices[i]]);
+    }
+
+    return sorted_relative_positions;
+}
+
+void calculate_acceleration(std::array<double, 2> position, std::array<double, 2> velocity, Values neighbors, double a, double b, double c, double &ax, double &ay)
 {
     double F_sum_x = 0;
     double F_sum_y = 0;
-    for (auto neighbor : neighbors)
-    {
-        std::array<double, 2> emn = { neighbor.dx/ neighbor.distance, neighbor.dy/ neighbor.distance};
-        double cos_phi = neighbor.dx / neighbor.distance;
-        F_sum_x += V(neighbor.distance, b, c) * (1+cos_phi) * emn[0];
-        F_sum_y += V(neighbor.distance, b, c) * (1+cos_phi) * emn[1];
+    for (auto neighbor : neighbors){
+        double dx = position[X] - neighbor[X];
+        double dy = position[Y] - neighbor[Y];
+        double distance = std::sqrt(dx * dx + dy * dy);
+        std::array<double, 2> emn = {};
+
+        double cos_phi = dx / distance;
+        F_sum_x += V(distance, b, c) * (1+cos_phi) * emn[0];
+        F_sum_y += V(distance, b, c) * (1+cos_phi) * emn[1];
     }
 
     ax = a * ((1.0 + F_sum_x) - velocity[0]);
@@ -72,10 +92,10 @@ void update(Values& positions,
             ) {
     // 速度の更新
     for (int n = 0; n < num; ++n){
-        // 隣接粒子の集合を作成
-        std::vector<Neighbor> neighbors = find_neighbors(positions, n, num, width, height);
+        // 近傍粒子の探索 {dx, dy}基準となる粒子との相対距離
+        Values neighbors = find_neighbors(positions, n, num, width, height);
         double ax, ay;
-        calculate_acceleration(velocities[n],neighbors, b, c, a, ax, ay);
+        calculate_acceleration(positions[n],velocities[n],neighbors, b, c, a, ax, ay);
         velocities[n][0] += ax * dt;
         velocities[n][1] += ay * dt;
     }
