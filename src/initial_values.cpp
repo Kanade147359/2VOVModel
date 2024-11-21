@@ -23,7 +23,7 @@ Values generate_initial_positions(int N, int num, double r) {
 }
 
 Values generate_initial_velocities(int num) {
-    Values velocities(num,{4.0,0.0});
+    Values velocities(num,{1.0,0.0});
     return velocities;
 }
 
