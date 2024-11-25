@@ -16,7 +16,7 @@ width = (math.sqrt(3) / 2) * r * N
 height = r * N
 
 df = pd.read_csv(csv_filepath, header=None, names=['x', 'y'])
-print(df.head())
+print("Start creating GIF...")
 if not os.path.exists('frames'):
     os.makedirs('frames')
 
