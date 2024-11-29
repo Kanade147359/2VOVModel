@@ -8,7 +8,7 @@
 const int X = 0;
 const int Y = 1;
 
-void generate_initial_positions(double* positions[][2], int N, int NUM, double r);
-void generate_initial_velocities(double* velocities[][2],int NUM);
+void generate_initial_positions(double positions[][2], int N, int NUM, double r);
+void generate_initial_velocities(double velocities[][2],int NUM);
 
 #endif 

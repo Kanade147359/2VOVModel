@@ -8,12 +8,12 @@
 const int X = 0;
 const int Y = 1;
 
-void calculate_acceleration(const double (&velocity)[2], const double (&neighbors)[][2], double b, double c, double a, double &ax, double &ay);
-void find_closest_neighbors(const double (&positions)[][2],double (&neighbors)[][2],  int N, int NUM, double width, double height);
+void calculate_acceleration(double velocity[2], double neighbors[][2], double b, double c, double a, double &ax, double &ay);
+void find_closest_neighbors(double positions[][2],double neighbors[][2],  int N, int NUM, double width, double height);
 void sort_and_select_top_6(double neighbors[][2], double distances[][2]);
 
-void update(double  (&positions)[][2], 
-            double  (&velocities)[][2], 
+void update(double positions[][2], 
+            double velocities[][2], 
             double dt, 
             double a, 
             double b,
@@ -22,8 +22,8 @@ void update(double  (&positions)[][2],
             double width,
             double height);
 
-void run_simulation(double (&positions)[][2], 
-                    double (&velocities)[][2], 
+void run_simulation(double positions[][2], 
+                    double velocities[][2], 
                     int STEPS, 
                     int NUM, 
                     double dt, 

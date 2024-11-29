@@ -20,8 +20,7 @@ int main(){
     std::string filepath = "output/positions.csv";
 
     double positions[NUM][2]; double velocities[NUM][2];
-    generate_initial_positions((&positions), ROW_SIZE, NUM, r); generate_initial_velocities(velocities, NUM);
-
+    generate_initial_positions(positions, ROW_SIZE, NUM, r); generate_initial_velocities(velocities, NUM);
     run_simulation(positions, velocities, steps, num, dt, a, b, c, width, height, filepath);
     return 0;
 }

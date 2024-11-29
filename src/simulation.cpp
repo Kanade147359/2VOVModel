@@ -9,7 +9,7 @@
 
 // 角度依存性関数
 std::array<double, 2> F(double V, double cos_phi, std::array<double, 2> emn) {
-    return {(V * (1 + cos_phi)) * emn[0], (V * (1 + cos_phi)) * emn[1]};
+    return {(V * (1 + cos_phi)) * emn[X], (V * (1 + cos_phi)) * emn[Y]};
 }
 
 // 力関数
@@ -17,15 +17,15 @@ double V(double r, double b, double c) {
     return 0.25 * (std::tanh(2.5*(r - b)) + c);
 }
 
-void find_neighbors(positions, int n, int num, double width, double height){
+void find_neighbors(positions[][2], int N, int num, double width, double height){
     Values neighbors;
     std::vector<double> distances; // 距離
     
     for (int m = 0; m < num; ++m)
     {
         if (m == n) continue; // 自分自身は無視
-        double dx = positions[m][0] - positions[n][0];
-        double dy = positions[m][1] - positions[n][1];
+        double dx = positions[m][X] - positions[n][X];
+        double dy = positions[m][Y] - positions[n][Y];
 
         if (dx < -width/2) dx += width;
         if (dx > width/2) dx -= width;
@@ -40,7 +40,7 @@ void find_neighbors(positions, int n, int num, double width, double height){
     return sort_and_select_top_6(neighbors, distances);
 }
 
-Values sort_and_select_top_6(const Values& neighbors, const std::vector<double>& distances) {
+void sort_and_select_top_6(const Values& neighbors, const std::vector<double>& distances) {
     
     std::vector<size_t> indices(distances.size());
     for (size_t i = 0; i < distances.size(); ++i) {
@@ -80,8 +80,8 @@ void calculate_acceleration(std::array<double, 2> position, std::array<double, 2
 }
 
 // 位置と速度の更新関数
-void update(Values& positions, 
-            Values& velocities, 
+void update(double positions[][2], 
+            double velocities[][2], 
             double dt, 
             double a, 
             double b,
@@ -123,8 +123,8 @@ void update(Values& positions,
         }
 }
 
-void run_simulation(Values &positions,
-                    Values &velocities,
+void run_simulation(double positions[][2],
+                    double velocities[][2],
                     int steps,
                     int num,
                     double dt,
