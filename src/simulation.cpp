@@ -17,7 +17,7 @@ double V(double r, double b, double c) {
     return 0.25 * (std::tanh(2.5*(r - b)) + c);
 }
 
-Values find_neighbors(Values& positions, int n, int num, double width, double height){
+void find_neighbors(positions, int n, int num, double width, double height){
     Values neighbors;
     std::vector<double> distances; // 距離
     

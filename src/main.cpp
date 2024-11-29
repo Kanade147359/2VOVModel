@@ -3,25 +3,24 @@
 #include <iostream>
 
 int main(){
-    int N = 10;
-    int num = std::pow(N, 2);
-    double r = 1.3;
-    double a = 0.5;
-    double b = 1.0;
-    double c = -1.0;
-    double dt = 0.01;
-    int steps = 10000;
+    const int ROW_SIZE = 10;
+    const size_t NUM = std::pow(ROW_SIZE, 2);
+    const double r = 1.3;
+    const double a = 0.5;
+    const double b = 1.0;
+    const double c = -1.0;
+    const double dt = 0.01;
+    const int STEPS = 10000;
 
-    double width = (std::sqrt(3)/2) * r * N;
-    double height = N * r;
+    const double width = (std::sqrt(3)/2) * r * ROW_SIZE;
+    const double height = ROW_SIZE * r;
 
     std::cout << "Width: " << width << ", Height: " << height << std::endl;
 
     std::string filepath = "output/positions.csv";
 
-    Values positions = generate_initial_positions(N, num, r);
-    Values velocities = generate_initial_velocities(num);
-    Values acceleration = generate_initial_accelerations(num);
+    double positions[NUM][2]; double velocities[NUM][2];
+    generate_initial_positions((&positions), ROW_SIZE, NUM, r); generate_initial_velocities(velocities, NUM);
 
     run_simulation(positions, velocities, steps, num, dt, a, b, c, width, height, filepath);
     return 0;

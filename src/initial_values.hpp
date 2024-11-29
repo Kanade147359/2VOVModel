@@ -5,10 +5,10 @@
 #include <array>
 #include <string>
 
-using Values = std::vector<std::array<double, 2>>;
+const int X = 0;
+const int Y = 1;
 
-Values generate_initial_positions(int N, int num, double r);
-Values generate_initial_velocities(int num);
-Values generate_initial_accelerations(int num);
+void generate_initial_positions(double* positions[][2], int N, int NUM, double r);
+void generate_initial_velocities(double* velocities[][2],int NUM);
 
 #endif 
