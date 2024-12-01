@@ -22,6 +22,6 @@ int main(){
 
     double positions[num][2]; double velocities[num][2];
     generate_initial_positions(positions,row_size, num, r); generate_initial_velocities(velocities, num);
-    // run_simulation(positions, velocities, STEPS, num, dt, a, b, c, width, height, filepath);
+    run_simulation(positions, velocities, STEPS, num, dt, a, b, c, width, height, filepath);
     return 0;
 }

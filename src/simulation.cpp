@@ -28,7 +28,7 @@ void find_neighbors(double positions[][2],double neighbors[][2],double distances
         neighbors[m][X] = positions[m][X]; neighbors[m][Y] = positions[m][Y];
         distances[m][0] = dx; distances[m][1] = dy; distances[m][2] = rmn;
     }
-    merge_sort(distances, neighbors, 0, NUM);
+    merge_sort(distances, neighbors, 0, NUM-1);
 }
 
 void merge_sort(double A[][3], double B[][2], int left, int right){
@@ -94,6 +94,10 @@ void calculate_acceleration(double position[2], double velocity[2], double neigh
         double dx = distances[i][X]; double dy = distances[i][Y];
         double distance = distances[i][2];
         double emn[2];
+        if (distance == 0.0) {
+            std::cerr << "Error: Particle distance is zero between particle and its neighbor " << i << "." << std::endl;
+            throw std::logic_error("Distance is zero in calculate_acceleration.");
+        }
         emn[X] = dx / distance; emn[Y] = dy / distance;
         double cos_phi = emn[X];
         F_sum_x += V(distance, b, c) * (1 + cos_phi) * emn[0];
@@ -116,40 +120,47 @@ void update(double positions[][2],
             ) {
     // 速度の更新
 
+    std::cout << "Velocity"<< velocities[0][X] << ", " << velocities[0][Y] << std::endl;
+
     for (int n = 0; n < num; ++n){
         // ソートする配列
-        double neighbors[num][2];//{X, Y}
-        double distances[num][3];//{dx, dy, distance}
+        double neighbors[num-1][2];//{X, Y}
+        double distances[num-1][3];//{dx, dy, distance}
         find_neighbors(velocities, neighbors, distances, n, num, width, height);
         double ax, ay;
         calculate_acceleration(positions[n], velocities[n],neighbors, distances, b, c, a, ax, ay);
+        std::cout << "Acceleration" << ax << ", " << ay << std::endl;
         velocities[n][0] += ax * dt; 
         velocities[n][1] += ay * dt;
+        break;
     }
     // 位置の更新
     for (int i = 0; i < num; ++i){
-
         // 位置の更新
+
         positions[i][X] += velocities[i][X] * dt;
         positions[i][Y] += velocities[i][Y] * dt;
 
         // x軸方向の境界条件
         if (positions[i][X] >= width) positions[i][X] -= width;
-        if (positions[i][Y] < 0) positions[i][Y] += width;
+        if (positions[i][X] < 0) positions[i][X] += width;
 
         // y軸方向の境界条件
         if (positions[i][Y] >= height) positions[i][Y] -= height;
         if (positions[i][Y] < 0) positions[i][Y] += height;
 
+        break;
         // 境界を超えた場合のエラーチェック
-        if (positions[i][X] > width || positions[i][Y] > height || positions[i][X] < 0 || positions[i][Y] < 0)
-        {
-            std::cerr << "Error: Particle " << i << " exceeded boundaries." << std::endl;
-            throw std::out_of_range("Particle exceeded width or height boundary");
-        }
-        }
+        //  for (int i = 0; i < num; ++i)
+        //  {
+        //  if (positions[i][X] > width || positions[i][Y] > height || positions[i][X] < 0 || positions[i][Y] < 0)
+        //  {
+        //      std::cerr << "Error: Particle " << i << " exceeded boundaries." << std::endl;
+        //      throw std::out_of_range("Particle exceeded width or height boundary");
+        //  }
+        //  }
+    }
 }
-
 void run_simulation(double positions[][2],
                     double velocities[][2],
                     int steps,
@@ -171,7 +182,9 @@ void run_simulation(double positions[][2],
 
     for (int i = 0; i < steps; ++i){
         update(positions, velocities, dt, a, b, c, num, width, height);
-
+        if (i == 1){
+            break;
+        }
         if (i % 20 == 0) {
             if (ofs_csv_file.is_open()) {
                 for (int j = 0; j < num; ++j) {
