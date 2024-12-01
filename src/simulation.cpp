@@ -24,10 +24,9 @@ void find_neighbors(double positions[][2],double neighbors[][2],double distances
         if (dy > height/2) dy -= height;
 
         double rmn = std::sqrt(dx*dx + dy*dy);
-        
+
         neighbors[k][X] = positions[m][X]; neighbors[k][Y] = positions[m][Y];
         distances[k][0] = dx; distances[k][1] = dy; distances[k][2] = rmn;
-
         ++k;
     }
     merge_sort(distances, neighbors, 0, NUM-1);
@@ -92,17 +91,17 @@ void calculate_acceleration(double position[2], double velocity[2], double neigh
     double F_sum_x = 0;
     double F_sum_y = 0;
     for (int i = 0; i < 6; ++i){
-        // distance ={dx, dy, distance}
-        double dx = distances[i][X]; double dy = distances[i][Y];
-        double distance = distances[i][2];
+        double dx = neighbors[i][X] - position[X];
+        double dy = neighbors[i][Y] - position[Y];
+        double distance = std::sqrt(distances[i][0]*distances[i][0] + distances[i][1]*distances[i][1]);
         double emn[2];
         emn[X] = dx / distance; emn[Y] = dy / distance;
-        double cos_phi = emn[X];
+        double cos_phi = (neighbors[i][X] - position[X]) / distance;
         F_sum_x += V(distance, b, c) * (1 + cos_phi) * emn[0];
-        F_sum_y += V(distance, b, c) * (1+cos_phi) * emn[1];
+        F_sum_y += V(distance, b, c) * (1 + cos_phi) * emn[1];
     }
-    ax = a * ((1.0 + F_sum_x) - velocity[0]);
-    ay = a * (F_sum_y - velocity[1]);
+    ax = a * ((1.0 + F_sum_x) - velocity[X]);
+    ay = a * (F_sum_y - velocity[Y]);
 }
 
 // 位置と速度の更新関数
@@ -127,7 +126,6 @@ void update(double positions[][2],
         calculate_acceleration(positions[n], velocities[n],neighbors, distances, b, c, a, ax, ay);
         velocities[n][0] += ax * dt; 
         velocities[n][1] += ay * dt;
-        break;
     }
     // 位置の更新
     for (int i = 0; i < num; ++i){
@@ -144,7 +142,6 @@ void update(double positions[][2],
         if (positions[i][Y] >= height) positions[i][Y] -= height;
         if (positions[i][Y] < 0) positions[i][Y] += height;
 
-        break;
         //境界を超えた場合のエラーチェック
          for (int i = 0; i < num; ++i)
          {
