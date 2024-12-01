@@ -1,27 +1,18 @@
 #include "simulation.hpp"
+#include "constants.hpp"
 #include <iostream>
-#include <vector>
 #include <cmath>
-#include <array>
 #include <string>
 #include <fstream>
-#include <algorithm>
-
-// 角度依存性関数
-std::array<double, 2> F(double V, double cos_phi, std::array<double, 2> emn) {
-    return {(V * (1 + cos_phi)) * emn[X], (V * (1 + cos_phi)) * emn[Y]};
-}
 
 // 力関数
 double V(double r, double b, double c) {
     return 0.25 * (std::tanh(2.5*(r - b)) + c);
 }
 
-void find_neighbors(positions[][2], int N, int num, double width, double height){
-    Values neighbors;
-    std::vector<double> distances; // 距離
+void find_neighbors(double positions[][2],double neighbors[][2],double distances[][3], int n, int NUM, double width, double height){;
     
-    for (int m = 0; m < num; ++m)
+    for (int m = 0; m < NUM; ++m)
     {
         if (m == n) continue; // 自分自身は無視
         double dx = positions[m][X] - positions[n][X];
@@ -33,48 +24,81 @@ void find_neighbors(positions[][2], int N, int num, double width, double height)
         if (dy > height/2) dy -= height;
 
         double rmn = std::sqrt(dx*dx + dy*dy);
-        neighbors.push_back({dx, dy});
-        distances.push_back(rmn);
+        
+        neighbors[m][X] = positions[m][X]; neighbors[m][Y] = positions[m][Y];
+        distances[m][0] = dx; distances[m][1] = dy; distances[m][2] = rmn;
     }
-
-    return sort_and_select_top_6(neighbors, distances);
+    merge_sort(distances, neighbors, 0, NUM);
 }
 
-void sort_and_select_top_6(const Values& neighbors, const std::vector<double>& distances) {
-    
-    std::vector<size_t> indices(distances.size());
-    for (size_t i = 0; i < distances.size(); ++i) {
-        indices[i] = i;
+void merge_sort(double A[][3], double B[][2], int left, int right){
+    if (left + 1 < right) {
+        int mid;
+
+        mid = (left + right) / 2;
+
+        merge_sort(A,B,left,mid);
+        merge_sort(A,B,mid,right);
+
+        merge(A, B, left, mid, right);
     }
-
-    std::sort(indices.begin(), indices.end(), [&distances](size_t a, size_t b) {
-        return distances[a] < distances[b];
-    });
-
-    Values sorted_relative_positions;
-
-    for (size_t i = 0; i < 6; ++i) {
-        sorted_relative_positions.push_back(neighbors[indices[i]]);
-    }
-
-    return sorted_relative_positions;
 }
 
-void calculate_acceleration(std::array<double, 2> position, std::array<double, 2> velocity, Values neighbors, double a, double b, double c, double &ax, double &ay)
+void merge(double A[][3], double B[][2],int left, int mid, int right){
+    int i, j, k;
+    int n1 = mid - left;
+    int n2 = right - mid;
+
+    double L_A[n1 + 1][3], R_A[n2 + 1][3];
+    double L_B[n1+1][2], R_B[n2+1][2];
+
+    for (i = 0; i < n1; i++) {
+        L_A[i][2] = A[left + i][2];
+        L_B[i][X] = B[left + i][X];
+        L_B[i][Y] = B[left + i][Y];
+    }
+    for (i = 0; i < n2; i++) {
+        R_A[i][2] = A[mid + i][2];
+        R_B[i][X] = B[mid + i][X];
+        R_B[i][Y] = B[mid + i][Y];
+    }
+
+    L_A[n1][2] = INFINITY;
+    R_A[n2][2] = INFINITY;
+
+    j = 0;
+    k = 0;
+
+    for (i = left; i < right; i++)
+    {
+        if (L_A[j] <= R_A[k]) {
+            A[i][2] = L_A[j][2];
+            B[i][X] = L_B[j][X];
+            B[i][Y] = L_B[j][Y];
+            j++;
+        } else {
+            A[i][2] = R_A[k][2];
+            B[i][X] = R_B[k][X];
+            B[i][Y] = R_B[k][Y];
+            k++;
+        }
+    }
+}
+
+void calculate_acceleration(double position[2], double velocity[2], double neighbors[][2], double distances[][3], double a, double b, double c, double &ax, double &ay)
 {
     double F_sum_x = 0;
     double F_sum_y = 0;
-    for (auto neighbor : neighbors){
-        double dx = position[X] - neighbor[X];
-        double dy = position[Y] - neighbor[Y];
-        double distance = std::sqrt(dx * dx + dy * dy);
-        std::array<double, 2> emn = {};
-
-        double cos_phi = dx / distance;
-        F_sum_x += V(distance, b, c) * (1+cos_phi) * emn[0];
+    for (int i = 0; i < 6; ++i){
+        // distance ={dx, dy, distance}
+        double dx = distances[i][X]; double dy = distances[i][Y];
+        double distance = distances[i][2];
+        double emn[2];
+        emn[X] = dx / distance; emn[Y] = dy / distance;
+        double cos_phi = emn[X];
+        F_sum_x += V(distance, b, c) * (1 + cos_phi) * emn[0];
         F_sum_y += V(distance, b, c) * (1+cos_phi) * emn[1];
     }
-
     ax = a * ((1.0 + F_sum_x) - velocity[0]);
     ay = a * (F_sum_y - velocity[1]);
 }
@@ -91,31 +115,34 @@ void update(double positions[][2],
             double height
             ) {
     // 速度の更新
+
     for (int n = 0; n < num; ++n){
-        // 近傍粒子の探索 {dx, dy}基準となる粒子との相対距離
-        Values neighbors = find_neighbors(positions, n, num, width, height);
+        // ソートする配列
+        double neighbors[num][2];//{X, Y}
+        double distances[num][3];//{dx, dy, distance}
+        find_neighbors(velocities, neighbors, distances, n, num, width, height);
         double ax, ay;
-        calculate_acceleration(positions[n],velocities[n],neighbors, b, c, a, ax, ay);
-        velocities[n][0] += ax * dt;
+        calculate_acceleration(positions[n], velocities[n],neighbors, distances, b, c, a, ax, ay);
+        velocities[n][0] += ax * dt; 
         velocities[n][1] += ay * dt;
     }
     // 位置の更新
     for (int i = 0; i < num; ++i){
 
         // 位置の更新
-        positions[i][0] += velocities[i][0] * dt;
-        positions[i][1] += velocities[i][1] * dt;
+        positions[i][X] += velocities[i][X] * dt;
+        positions[i][Y] += velocities[i][Y] * dt;
 
         // x軸方向の境界条件
-        if (positions[i][0] >= width) positions[i][0] -= width;
-        if (positions[i][0] < 0) positions[i][0] += width;
+        if (positions[i][X] >= width) positions[i][X] -= width;
+        if (positions[i][Y] < 0) positions[i][Y] += width;
 
         // y軸方向の境界条件
-        if (positions[i][1] >= height) positions[i][1] -= height;
-        if (positions[i][1] < 0) positions[i][1] += height;
+        if (positions[i][Y] >= height) positions[i][Y] -= height;
+        if (positions[i][Y] < 0) positions[i][Y] += height;
 
         // 境界を超えた場合のエラーチェック
-        if (positions[i][0] > width || positions[i][1] > height || positions[i][0] < 0 || positions[i][1] < 0)
+        if (positions[i][X] > width || positions[i][Y] > height || positions[i][X] < 0 || positions[i][Y] < 0)
         {
             std::cerr << "Error: Particle " << i << " exceeded boundaries." << std::endl;
             throw std::out_of_range("Particle exceeded width or height boundary");
