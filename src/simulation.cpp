@@ -11,10 +11,10 @@ double V(double r, double b, double c) {
 }
 
 void find_neighbors(double positions[][2],double neighbors[][2],double distances[][3], int n, int NUM, double width, double height){;
-    
+    int k = 0; // neighbors, distancesのindex
     for (int m = 0; m < NUM; ++m)
     {
-        if (m == n) continue; // 自分自身は無視
+        if (m == n) continue;
         double dx = positions[m][X] - positions[n][X];
         double dy = positions[m][Y] - positions[n][Y];
 
@@ -25,8 +25,10 @@ void find_neighbors(double positions[][2],double neighbors[][2],double distances
 
         double rmn = std::sqrt(dx*dx + dy*dy);
         
-        neighbors[m][X] = positions[m][X]; neighbors[m][Y] = positions[m][Y];
-        distances[m][0] = dx; distances[m][1] = dy; distances[m][2] = rmn;
+        neighbors[k][X] = positions[m][X]; neighbors[k][Y] = positions[m][Y];
+        distances[k][0] = dx; distances[k][1] = dy; distances[k][2] = rmn;
+
+        ++k;
     }
     merge_sort(distances, neighbors, 0, NUM-1);
 }
@@ -94,10 +96,6 @@ void calculate_acceleration(double position[2], double velocity[2], double neigh
         double dx = distances[i][X]; double dy = distances[i][Y];
         double distance = distances[i][2];
         double emn[2];
-        if (distance == 0.0) {
-            std::cerr << "Error: Particle distance is zero between particle and its neighbor " << i << "." << std::endl;
-            throw std::logic_error("Distance is zero in calculate_acceleration.");
-        }
         emn[X] = dx / distance; emn[Y] = dy / distance;
         double cos_phi = emn[X];
         F_sum_x += V(distance, b, c) * (1 + cos_phi) * emn[0];
@@ -119,17 +117,14 @@ void update(double positions[][2],
             double height
             ) {
     // 速度の更新
-
-    std::cout << "Velocity"<< velocities[0][X] << ", " << velocities[0][Y] << std::endl;
-
     for (int n = 0; n < num; ++n){
         // ソートする配列
         double neighbors[num-1][2];//{X, Y}
         double distances[num-1][3];//{dx, dy, distance}
-        find_neighbors(velocities, neighbors, distances, n, num, width, height);
-        double ax, ay;
+        find_neighbors(positions, neighbors, distances, n, num, width, height);
+        double ax = 0.0;
+        double ay = 0.0;
         calculate_acceleration(positions[n], velocities[n],neighbors, distances, b, c, a, ax, ay);
-        std::cout << "Acceleration" << ax << ", " << ay << std::endl;
         velocities[n][0] += ax * dt; 
         velocities[n][1] += ay * dt;
         break;
@@ -150,15 +145,15 @@ void update(double positions[][2],
         if (positions[i][Y] < 0) positions[i][Y] += height;
 
         break;
-        // 境界を超えた場合のエラーチェック
-        //  for (int i = 0; i < num; ++i)
-        //  {
-        //  if (positions[i][X] > width || positions[i][Y] > height || positions[i][X] < 0 || positions[i][Y] < 0)
-        //  {
-        //      std::cerr << "Error: Particle " << i << " exceeded boundaries." << std::endl;
-        //      throw std::out_of_range("Particle exceeded width or height boundary");
-        //  }
-        //  }
+        //境界を超えた場合のエラーチェック
+         for (int i = 0; i < num; ++i)
+         {
+         if (positions[i][X] > width || positions[i][Y] > height || positions[i][X] < 0 || positions[i][Y] < 0)
+         {
+             std::cerr << "Error: Particle " << i << " exceeded boundaries." << std::endl;
+             throw std::out_of_range("Particle exceeded width or height boundary");
+         }
+         }
     }
 }
 void run_simulation(double positions[][2],
@@ -182,9 +177,6 @@ void run_simulation(double positions[][2],
 
     for (int i = 0; i < steps; ++i){
         update(positions, velocities, dt, a, b, c, num, width, height);
-        if (i == 1){
-            break;
-        }
         if (i % 20 == 0) {
             if (ofs_csv_file.is_open()) {
                 for (int j = 0; j < num; ++j) {
