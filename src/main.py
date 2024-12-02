@@ -18,8 +18,8 @@ def main():
   height = r * row_size
 
   filepath = 'output/positions.csv'
-  positions = initial_values.generate_initial_positions(row_size, r)
-  velocities = initial_values.generate_initial_velocities(filepath, row_size, a, b, c)
+  positions = initial_values.generate_initial_positions(row_size, num, r)
+  velocities = initial_values.generate_initial_velocities(num)
 
   simulation.run_simulation(positions, velocities, steps, num, dt, a, b, c, width, height, filepath)
 
