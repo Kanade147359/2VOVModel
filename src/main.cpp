@@ -16,8 +16,6 @@ int main(){
     const double width = (std::sqrt(3)/2) * r * row_size;
     const double height = row_size * r;
 
-    std::cout << "Width: " << width << ", Height: " << height << std::endl;
-
     std::string filepath = "output/positions.csv";
 
     double positions[num][2]; double velocities[num][2];

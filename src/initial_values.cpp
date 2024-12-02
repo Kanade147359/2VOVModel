@@ -6,6 +6,7 @@ void generate_initial_positions(double positions[][2],int row_size, int num, dou
 
     int k=0;
     int col_size = row_size;
+    
     for (int i = 0; i < col_size; ++i)
     {
         for (int j = 0; j < row_size; ++j) {
