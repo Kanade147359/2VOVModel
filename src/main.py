@@ -24,3 +24,4 @@ def main():
   simulation.run_simulation(positions, velocities, steps, num, dt, a, b, c, width, height, filepath)
 
 if __name__ == '__main__':
+  main()
