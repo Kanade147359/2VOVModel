@@ -5,8 +5,8 @@ import initial_values
 import simulation
 
 def main():
-  row_size = 10
-  num = row_size**2
+  row_size = 2
+  num = 2
   r = 1.3
   a = 0.5
   b = 1.0

@@ -4,8 +4,8 @@
 #include <iostream>
 
 int main(){
-    int row_size = 10;
-    size_t num = std::pow(row_size, 2);
+    int row_size = 2;
+    size_t num = 2;
     double r = 1.3;
     double a = 0.5;
     double b = 1.0;
