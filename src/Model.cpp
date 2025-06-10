@@ -8,7 +8,7 @@ namespace Model {
     double b       = 1.0;
     double c = 0.0;
     double dt      = 0.01;
-    Vec2 optimalVelocity = {1.0, 0.0};
+		Vec2 desiredVel = {1.0, 0.0}; 
 
     double F(Vec2 p_vel, Vec2 desired_vel) {
         double  cos_theta = p_vel.dot(desired_vel) / (p_vel.norm() * desired_vel.norm());
@@ -26,9 +26,9 @@ namespace Model {
             Vec2 diff = other.pos - p.pos;
             double dist = diff.norm();
             if (dist < 1e-6) continue;
-            sumF += diff.normalized() * F(p.vel, optimalVelocity) * interactionForce(dist);
+            sumF += diff.normalized() * F(p.vel, desiredVel) * interactionForce(dist);
         }
 
-        return ( optimalVelocity - sumF - p.vel ) * a;
+        return ( desiredVel - sumF - p.vel ) * a;
     }
 }

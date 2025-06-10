@@ -4,7 +4,6 @@
 
 struct Vec2 {
     double x, y;
-    Vec2(double xx = 0.0, double yy = 0.0);
     Vec2 operator+(const Vec2& v) const;
     Vec2 operator-(const Vec2& v) const;
     Vec2 operator*(double s) const;

@@ -19,8 +19,8 @@ $(CSV): $(TARGET)
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
-src/%.o src/%.cpp
-	$(CXX) $(CXXFLAGS) -c $c -o $@
+src/%.o: src/%.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(OBJS) $(TARGET) $(GIF) $(CSV)

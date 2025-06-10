@@ -27,7 +27,7 @@ int main() {
     std::ofstream ofs("positions.csv");
     ofs << "step";
     for(int i = 0; i < N; ++i) ofs << ",x" << i << ",y" << i;
-    ofs << "/n";
+    ofs << "\n";
 
     for (int step = 0; step < steps; ++step) {
         for (int i = 0; i < N; ++i) {

@@ -11,4 +11,4 @@ Vec2 Vec2::normalized() const {
     return n > 1e-12 ? Vec2{x/n, y/n} : Vec2{0, 0};
 } 
 
-double Vec2::dot(const Vec2& v) const { retrun x*v.x + y*v.y } 
+double Vec2::dot(const Vec2& v) const { return x*v.x + y*v.y; } 

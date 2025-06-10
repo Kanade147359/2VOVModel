@@ -11,7 +11,7 @@ namespace Model {
     extern double b;
     extern double c_param;
     extern double dt;
-    Vec2 optimalVelocity;
+		double F(Vec2 p_vel, Vec2 desired_vel);
 
     double interactionForce(double d);
     Vec2 computeAcceleration(const Particle& p, const std::vector<Particle>& all);
