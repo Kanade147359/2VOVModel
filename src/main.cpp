@@ -1,27 +1,52 @@
-#include "initial_values.hpp" 
-#include "simulation.hpp"
-#include "constants.hpp"
 #include <iostream>
+#include <vector>
+#include <cstdlib>
+#include <fstream>
+#include "Vec2.hpp"
+#include "Particle.hpp"
+#include "Model.hpp"
 
-int main(){
-    int row_size = 10;
-    size_t num = std::pow(row_size, 2);
-    double r = 1.3;
-    double a = 0.5;
-    double b = 1.0;
-    double c = -1.0;
-    double dt = 0.01;
-    int STEPS = 10000;
+int main() {
+    const int nCols = 10;
+    const int nRows = 5;
+    const double spacing = 1.0;
+    const double dy = spacing * std::sqrt(3.0) / 2.0;
+    const int N = nCols * nRows;
+    const int steps = 10000;
+    std::vector<Particle> P(N);
 
-    const double width = (std::sqrt(3)/2) * r * row_size;
-    const double height = row_size * r;
+    for (int i = 0; i < N; ++i) {
+        int row = i / nCols;
+        int col = i % nCols;
+        double offset = (row % 2 == 0) ? 0.0 : spacing / 2.0;
+        P[i].pos = {col * spacing + offset, row * dy};
+        P[i].vel = {1, 0};
+        P[i].acc = {0, 0};
+    }
 
-    std::cout << "Width: " << width << ", Height: " << height << std::endl;
+    std::ofstream ofs("positions.csv");
+    ofs << "step";
+    for(int i = 0; i < N; ++i) ofs << ",x" << i << ",y" << i;
+    ofs << "/n";
 
-    std::string filepath = "output/positions.csv";
-
-    double positions[num][2]; double velocities[num][2];
-    generate_initial_positions(positions,row_size, num, r); generate_initial_velocities(velocities, num);
-    run_simulation(positions, velocities, STEPS, num, dt, a, b, c, width, height, filepath);
+    for (int step = 0; step < steps; ++step) {
+        for (int i = 0; i < N; ++i) {
+            P[i].acc = Model::computeAcceleration(P[i], P);
+        }
+        for (int i = 0; i < N; ++i) {
+            P[i].vel += P[i].acc * Model::dt;
+            P[i].pos += P[i].vel * Model::dt;
+        }
+        ofs << step;
+        for(int i = 0; i < N; ++i) {
+            ofs << "," << P[i].pos.x << "," << P[i].pos.y;
+        }
+        ofs << "\n";
+    }
+    ofs.close();
+    std::cout << "Simulation completed. Results saved to positions.csv" << std::endl;
     return 0;
 }
+
+
+

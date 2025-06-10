@@ -1,44 +1,26 @@
-CXX = g++
-CXXFLAGS = -std=c++11 
+CXX       := g++
+CXXFLAGS  := -std=c++17 -Iinclude -O2
+SRCS      := src/Vec2.cpp src/Model.cpp src/main.cpp
+OBJS      := $(SRCS:.cpp=.o)
+TARGET    := ov2d
+PYTHON    := uv run
+GIF       := animation.gif
+CSV       := positions.csv
+PY_SCRIPT := make_gif.py
 
-OBJECTS = main.o initial_values.o simulation.o
+.PHONY: all clean
 
-TMP_DIR = tmp
+$(GIF): $(CSV) $(PY_SCRIPT)
+	uv run $(PY_SCRIPT)
 
-OBJECTS = $(TMP_DIR)/main.o $(TMP_DIR)/initial_values.o $(TMP_DIR)/simulation.o
-
-TARGET = simulation.out
-
-all : $(TARGET)
-
-$(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS)
-
-$(TMP_DIR)/main.o: src/main.cpp src/initial_values.hpp src/simulation.hpp | $(TMP_DIR)
-	$(CXX) $(CXXFLAGS) -c src/main.cpp -o $(TMP_DIR)/main.o
-
-$(TMP_DIR)/initial_values.o: src/initial_values.cpp src/initial_values.hpp | $(TMP_DIR)
-	$(CXX) $(CXXFLAGS) -c src/initial_values.cpp -o $(TMP_DIR)/initial_values.o
-
-$(TMP_DIR)/simulation.o: src/simulation.cpp src/simulation.hpp | $(TMP_DIR)
-	$(CXX) $(CXXFLAGS) -c src/simulation.cpp -o $(TMP_DIR)/simulation.o
-
-$(TMP_DIR):
-	mkdir -p $(TMP_DIR)
-
-
-output/positions.csv: $(TARGET)
+$(CSV): $(TARGET)
 	./$(TARGET)
 
-gif: output/positions.csv
-	poetry install
-	poetry run python3 create_gif.py
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
-# クリーンアップルール
-.PHONY: clean clear
+src/%.o src/%.cpp
+	$(CXX) $(CXXFLAGS) -c $c -o $@
+
 clean:
-	rm -f $(TMP_DIR)/*.o $(TARGET)
-
-clear: clean
-	rm -f output/positions.csv simulation.gif
-
+	rm -f $(OBJS) $(TARGET) $(GIF) $(CSV)
