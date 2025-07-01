@@ -1,32 +1,78 @@
-import csv
-from PIL import Image, ImageDraw
+import glob
+import yaml
+import numpy as np
+import matplotlib.pyplot as plt
 
-CSV_FILE = 'positions.csv'
-OUTPUT_GIF = 'animation.gif'
-FRAME_SIZE = (800, 400)
-BACKGROUND_COLOR = (255, 255, 255)
-PARTICLE_COLOR = (0, 0, 0)
-PARTICLE_RADIUS = 3
-DURATION = 100
 
-frames = []
-with open(CSV_FILE, newline='') as f:
-    reader = csv.reader(f)
-    header = next(reader)
-    N = (len(header) - 1) // 2
+def load_box_size(config_file="conf.yaml"):
+    with open(config_file, "r") as f:
+        conf = yaml.safe_load(f)
+    return conf["LX"], conf["LY"]
 
-    for row in reader:
-        image = Image.new("RGB", FRAME_SIZE, BACKGROUND_COLOR)
-        draw = ImageDraw.Draw(image)
-        for i in range(N):
-            x = float(row[1 + 2 * i])
-            y = float(row[2 + 2 * i])
-            px = int(x * 20 + 50)   # スケーリングとオフセット調整
-            py = int(y * 20 + 50)
-            draw.ellipse((px - PARTICLE_RADIUS, py - PARTICLE_RADIUS,
-                          px + PARTICLE_RADIUS, py + PARTICLE_RADIUS),
-                         fill=PARTICLE_COLOR)
-        frames.append(image)
 
-frames[0].save(OUTPUT_GIF, save_all=True, append_images=frames[1:], duration=DURATION, loop=0)
-print("GIF animation created successfully as 'animation.gif'.")
+def load_frame_data(filename):
+    return np.loadtxt(filename)
+
+
+def render_frame(data, LX, LY, output_file, dot_size=10, vector_scale=0.5):
+    fig, ax = plt.subplots(figsize=(6, 6))
+    ax.set_facecolor("white")
+    ax.set_xlim(0, LX)
+    ax.set_ylim(0, LY)
+    ax.set_aspect("equal")
+    ax.axis("off")
+
+    x = data[:, 0]
+    y = data[:, 1]
+    vx = data[:, 2]
+    vy = data[:, 3]
+
+    # 黒丸
+    ax.scatter(x, y, color="black", s=dot_size)
+
+    # 速度ベクトル
+    ax.quiver(
+        x,
+        y,
+        vx,
+        vy,
+        angles="xy",
+        scale_units="xy",
+        scale=1 / vector_scale,
+        color="black",
+        width=0.002,
+    )
+
+    plt.savefig(output_file, dpi=150, bbox_inches="tight", pad_inches=0)
+    plt.close()
+
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dot-size", type=float, default=10, help="agent dot size")
+    parser.add_argument(
+        "--vector-scale", type=float, default=0.5, help="velocity vector scale"
+    )
+    args = parser.parse_args()
+
+    LX, LY = load_box_size()
+    frame_files = sorted(glob.glob("frame*.dat"))
+
+    for f in frame_files:
+        data = load_frame_data(f)
+        png_file = f.replace(".dat", ".png")
+        render_frame(
+            data,
+            LX,
+            LY,
+            png_file,
+            dot_size=args.dot_size,
+            vector_scale=args.vector_scale,
+        )
+        print(f"Rendered {png_file}")
+
+
+if __name__ == "__main__":
+    main()
